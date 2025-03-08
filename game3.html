@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSL Auction Game - Team Assignment</title>
+            <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            color: white;
+            background: url('file:///C:/Users/Tech%20Link/Downloads/preview%20(1).jpg') no-repeat center center fixed;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0a3e00;
+        }
+
+        .content-wrapper {
+            width: 80%;
+            max-width: 900px;
+            background:rgb(1, 124, 1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        table th {
+            background: rgba(0, 160, 0, 0.8);
+        }
+
+        table td {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .player {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .cpu {
+            color: #ff0000;
+            font-weight: bold;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background: #00a000;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #016801;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <h1>PSL Auction Game - Team Assignment</h1>
+        <p>Below is the list of teams and their controllers.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Team Name</th>
+                    <th>Controlled By</th>
+                </tr>
+            </thead>
+            <tbody id="teamAssignmentTable"></tbody>
+        </table>
+
+        <button onclick="proceedToAuction()">Proceed to Auction</button>
+    </div>
+
+    <script>
+        // Retrieve player count and selected teams from localStorage
+const playerCount = parseInt(localStorage.getItem('playerCount')) || 3;  // Default to 3 players
+const selectedTeams = JSON.parse(localStorage.getItem('selectedTeams')) || [];
+const teamNames = [
+    "Islamabad United",
+    "Peshawar Zalmi",
+    "Lahore Qalandars",
+    "Karachi Kings",
+    "Quetta Gladiators",
+    "Multan Sultans"
+]; // List of exactly 6 teams
+
+// Generate an array of team objects based on teamNames
+const allTeams = teamNames.map(teamName => ({ teamName }));
+
+function assignTeamsToPlayers() {
+    const tableBody = document.getElementById('teamAssignmentTable');
+    tableBody.innerHTML = '';  // Clear any existing rows
+
+    const totalTeams = selectedTeams.length;
+
+    // First, assign teams to players
+    for (let i = 0; i < totalTeams; i++) {
+        const row = document.createElement('tr');
+        const teamCell = document.createElement('td');
+        const controlCell = document.createElement('td');
+
+        teamCell.textContent = selectedTeams[i].teamName;
+
+        if (i < playerCount) {
+            // Assign teams to players
+            controlCell.textContent = `Player ${i + 1}`;
+            controlCell.classList.add('player');
+        } else {
+            // Assign remaining teams to CPU
+            controlCell.textContent = 'CPU';
+            controlCell.classList.add('cpu');
+        }
+
+        row.appendChild(teamCell);
+        row.appendChild(controlCell);
+        tableBody.appendChild(row);
+    }
+
+    // If there are fewer than 6 players, assign remaining teams to CPU
+    if (selectedTeams.length < 6) {
+        const unselectedTeams = allTeams.filter(team => !selectedTeams.some(selected => selected.teamName === team.teamName));
+
+        unselectedTeams.slice(0, 6 - selectedTeams.length).forEach(team => {
+            const row = document.createElement('tr');
+            const teamCell = document.createElement('td');
+            const controlCell = document.createElement('td');
+
+            teamCell.textContent = team.teamName;
+            controlCell.textContent = 'CPU';
+            controlCell.classList.add('cpu');
+
+            row.appendChild(teamCell);
+            row.appendChild(controlCell);
+            tableBody.appendChild(row);
+        });
+    }
+}
+
+assignTeamsToPlayers();
+
+function proceedToAuction() {
+    alert("Proceeding to Auction!");
+}
+
+    </script>
+</body>
+</html>

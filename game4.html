@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSL Auction Game - Player Auction</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a3e00, #004d00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .countdown {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            color: #ffd700;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+            animation: countdownAnimation 3s ease-out forwards;
+            position: absolute;
+            z-index: 10; /* Ensure the countdown is on top */
+        }
+
+        @keyframes countdownAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-container {
+            perspective: 1000px;
+            width: 800px; /* Increased width */
+            height: 450px; /* Increased height */
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 5;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: scale(0.9); /* Increased scale */
+            opacity: 0;
+            transition: transform 0.7s ease, box-shadow 0.7s ease, opacity 0.7s ease;
+            border-radius: 15px;
+            animation: cardPopUp 1s ease-out forwards;
+        }
+
+
+        @keyframes cardPopUp {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .card.pop-up {
+            transform: scale(1);
+            opacity: 1;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .card.flip {
+            transform: rotateY(180deg) scale(1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: cardFlip 1s ease-out forwards;
+        }
+
+        @keyframes cardFlip {
+            0% {
+                transform: rotateY(0);
+            }
+            100% {
+                transform: rotateY(180deg);
+            }
+        }
+
+        .card.flip-back {
+            transform: rotateY(180deg) scale(1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: cardFlipBack 1s ease-out forwards;
+        }
+
+        @keyframes cardFlipBack {
+            0% {
+                transform: rotateY(180deg);
+            }
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-back {
+            background: #006400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .card-front {
+            background: #002d00;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: row;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .card-image {
+            width: 50%; /* Left half is covered by the image */
+            height: 100%; /* Ensure it covers the full height */
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden; /* Ensures the image does not overflow */
+        }
+
+        .card-image img {
+            object-fit: cover; /* Makes the image cover the area without distortion */
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+
+        @keyframes imageFadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .card-details {
+            width: 50%; /* Right half for the details */
+            padding: 15px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #1b5e20;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-details h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffd700;
+            animation: textFadeIn 1s ease-out forwards;
+        }
+
+        @keyframes textFadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .card-details p {
+            font-size: 1.2rem;
+            margin: 8px 0;
+            color: white;
+        }
+
+        .card-details strong {
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        .card-details span {
+            font-weight: 500;
+        }
+
+        .timer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+            animation: timerAnimation 1s ease-out forwards;
+            z-index: 15; /* Ensure the timer is above the card */
+        }
+
+        @keyframes timerAnimation {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        /* Container for the player name and logo */
+        .card-name-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Container for the logo */
+        .card-logo-container {
+            display: inline-block;
+            margin-left: 10px; /* Adds space between the name and logo */
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        /* Logo styles */
+        #logo {
+            width: 100px; /* Adjust the size of the logo */
+            height: auto;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="countdown" id="countdown">Auction starts in 5...</div>
+    <div class="timer" id="timer"></div>
+
+    <div class="card-container">
+        <div class="card" id="auctionCard">
+            <div class="card-face card-back" id="cardBack">Player Card</div>
+            <div class="card-face card-front" id="cardFront">
+                <div class="card-image">
+                    <img id="playerImage" src="" alt="Player Image">
+                </div>
+                <div class="card-details">
+                    <div class="card-name-container">
+                        <h2 id="playerName">Player Name</h2>
+                        <div class="card-logo-container">
+                            <img id="logo" src="C:/Users/Tech Link/Downloads/pcb-unveils-new-brand-identity-logo-for-psl-9-08_12_2023_prev_ui.png" alt="PSL Logo">
+                        </div>
+                    </div>
+                    <p><strong>Average:</strong> <span id="playerAverage">0</span></p>
+                    <p><strong>Strike Rate:</strong> <span id="playerStrikeRate">0</span></p>
+                    <p><strong>50s:</strong> <span id="playerFifties">0</span></p>
+                    <p><strong>100s:</strong> <span id="playerHundreds">0</span></p>
+                    <p><strong>Best:</strong> <span id="playerBest">0</span></p>
+                    <p><strong>Matches:</strong> <span id="playerMatches">0</span></p>
+                    <p><strong>High Score:</strong> <span id="playerHighScore">0</span></p>
+                    <p><strong>4s:</strong> <span id="playerFours">0</span></p>
+                    <p><strong>6s:</strong> <span id="playerSixes">0</span></p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const players = [
+            {
+                name: "Babar Azam",
+                average: 33.54,
+                strikeRate: 129.35,
+                fifties: 36,
+                hundreds: 3,
+                best: "122*",
+                matches: 128,
+                highScore: "115",
+                fours: 465,
+                sixes: 73
+
+            },
+            {
+                name: "Shaheen Afridi",
+                average: 12.3,
+                strikeRate: 95.0,
+                fifties: 0,
+                hundreds: 0,
+                best: "20*",
+                matches: 50,
+                highScore: "20*",
+                fours: 15,
+                sixes: 5
+            }
+        ];
+
+        const playerImages = [
+        { name: "Babar Azam", image: "C:/Users/Tech Link/Downloads/Web_Photo_Editor.jpg" },
+        { name: "Shaheen Afridi", image: "C:/Users/Tech Link/Downloads/Shaheen Afridi image.jpeg" }
+        ];
+
+        let currentIndex = 0;
+        let countdownTimer = 0;
+        let timerDisplay;
+
+        function countdown() {
+            const countdownElement = document.getElementById("countdown");
+            let timeLeft = 5;
+
+            countdownElement.style.display = "block";
+
+            const interval = setInterval(() => {
+                countdownElement.textContent = `Auction starts in ${timeLeft}...`;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(interval);
+                    countdownElement.style.display = "none";
+                    showCard();
+                }
+            }, 1000);
+        }
+
+        function showCard() {
+            const cardContainer = document.querySelector(".card-container");
+            const card = document.getElementById("auctionCard");
+
+            cardContainer.style.display = "flex";
+            setTimeout(() => {
+                card.classList.add("pop-up");
+                setTimeout(() => {
+                    displayPlayer(currentIndex);
+                    card.classList.add("flip");
+                    startTimer();
+                }, 1000);
+            }, 500);
+        }
+
+        function displayPlayer(index) {
+            const player = players[index];
+            const playerImage = playerImages.find(p => p.name === player.name); // Find player image by name
+            document.getElementById("playerName").textContent = player.name;
+            document.getElementById("playerAverage").textContent = player.average;
+            document.getElementById("playerStrikeRate").textContent = player.strikeRate;
+            document.getElementById("playerFifties").textContent = player.fifties;
+            document.getElementById("playerHundreds").textContent = player.hundreds;
+            document.getElementById("playerBest").textContent = player.best;
+            document.getElementById("playerMatches").textContent = player.matches;
+            document.getElementById("playerHighScore").textContent = player.highScore;
+            document.getElementById("playerImage").src = playerImage.image; // Update image source
+            document.getElementById("playerFours").textContent = player.fours;
+            document.getElementById("playerSixes").textContent = player.sixes;
+
+        }
+
+        function startTimer() {
+            timerDisplay = document.getElementById("timer");
+            timerDisplay.style.display = "none"; // Initially hide the timer
+
+            let timeLeft = 10;
+            const timerInterval = setInterval(() => {
+                if (timeLeft <= 3) {
+                    timerDisplay.textContent = timeLeft;
+                    timerDisplay.style.display = "block"; // Show the timer when it reaches 3
+                    timerDisplay.style.animation = 'timerAnimation 1s ease-out forwards'; // Apply the fade-in animation
+                }
+
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    // Fade out the timer before hiding
+                    timerDisplay.style.animation = 'fadeOut 0.3s ease-out forwards';
+                    const card = document.getElementById("auctionCard");
+                    card.classList.add("flip-back");
+                    setTimeout(() => {
+                        timerDisplay.style.display = "none";
+                        card.classList.add("move-out"); // Hide the timer after the fade-out
+                    }, 1000); // Wait for 0.3 seconds before hiding
+                    clearInterval(timerInterval); // Stop the timer once it reaches 0
+                }
+            }, 1000);
+        }
+
+        // Start the countdown on page load
+        countdown();
+    </script>
+</body>
+</html>

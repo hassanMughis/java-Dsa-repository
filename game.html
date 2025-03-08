@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSL Auction Game</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        video#bgVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            filter: blur(10px);
+            display: none;
+        }
+
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 58, 0, 0.9); 
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .popup-content {
+            background: rgba(0, 58, 0, 0.9); 
+            padding: 150px 40px 40px 40px; 
+            text-align: center;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 15px;
+            position: relative;
+            height: auto;
+        }
+
+        .popup-content h2 {
+            font-size: 28px;
+            margin-bottom: 40px;
+            color: white;
+            position: relative;
+        }
+
+        .popup-content h2 img {
+            position: absolute;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 150px;
+        }
+
+        .popup-content p {
+            font-size: 18px;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .popup-content button {
+            padding: 15px 30px;
+            background-color:  rgb(0, 160, 0);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .popup-content button:hover {
+            background-color: rgb(1, 124, 1);
+        }
+
+        .slider-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .slider-box {
+            background: rgba(0, 58, 0, 0.9);
+            padding: 150px 40px 40px 40px; 
+            border-radius: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            width: 90%;
+            max-width: 700px;
+        }
+
+        .slider-box h1 {
+            font-size: 30px;
+            margin-bottom: 60px;
+            color: white;
+            position: relative;
+        }
+
+        .slider-box h1 img {
+            position: absolute;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 150px;
+        }
+
+        .slider-box input[type="range"] {
+            width: 80%;
+            height: 12px;
+            appearance: none;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .slider-box input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background:rgb(0, 160, 0);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-box p {
+            font-size: 20px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .slider-box button {
+            margin-top: 40px;
+            padding: 15px 30px;
+            background-color:rgb(0, 160, 0);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .slider-box button:hover {
+            background-color:  rgb(1, 124, 1);
+        }
+    </style>
+</head>
+<body>
+    <video id="bgVideo" autoplay loop muted>
+        <source src="C:/Users/Tech Link/Desktop/SUBSCRIBE.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="popup" id="rulesPopup">
+        <div class="popup-content">
+            <h2><img src="C:/Users/Tech Link/Downloads/OIP-removebg-preview.png" alt="Logo"> Rules of the Auction</h2>
+            <p>Welcome to the PSL Auction Game! Here are the rules:</p>
+            <ul style="text-align:left; margin-left: 40px; font-size: 18px;">
+                <li>The game allows you to select players for your team.</li>
+                <li>Each player has a specific role and category (Platinum, Gold, Silver, Emerging).</li>
+                <li>You have a limited budget to select 18 players for your team.</li>
+                <li>There is a time limit for each bid during the auction.</li>
+                <li>After all teams have selected their players, the game proceeds to the final round.</li>
+            </ul>
+            <button onclick="startGame()">Got It</button>
+        </div>
+    </div>
+
+    <div class="slider-container" id="sliderContainer">
+        <div class="slider-box">
+            <h1><img src="C:/Users/Tech Link/Downloads/OIP-removebg-preview.png" alt="Logo"> Select Number of Players</h1>
+            <input type="range" id="playerSlider" min="1" max="6" value="3" oninput="updatePlayerCount(this.value)">
+            <p>Number of players: <span id="playerCount">3</span></p>
+            <button onclick="proceed()">Start Auction</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById('rulesPopup').style.visibility = 'visible';
+            document.getElementById('rulesPopup').style.opacity = 1;
+        };
+
+        function startGame() {
+            const video = document.getElementById('bgVideo');
+            video.style.display = 'block'; 
+            video.muted = false; 
+            video.play(); 
+            
+            localStorage.setItem('videoTime', video.currentTime);
+
+            document.getElementById('rulesPopup').style.visibility = 'hidden';
+            document.getElementById('rulesPopup').style.opacity = 0;
+
+            document.getElementById('sliderContainer').style.visibility = 'visible';
+            document.getElementById('sliderContainer').style.opacity = 1;
+        }
+
+        function updatePlayerCount(value) {
+            document.getElementById('playerCount').textContent = value;
+        }
+
+        function proceed() {
+            const playerCount = document.getElementById('playerSlider').value;
+            alert(`Starting the game with ${playerCount} players!`);
+            
+            window.location.href = `file:///C:/Users/Tech%20Link/Desktop/game2.html?players=${playerCount}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSL Auction Game - Player Auction</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a3e00, #004d00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .countdown {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            color: #ffd700;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+            animation: countdownAnimation 3s ease-out forwards;
+            position: absolute;
+            z-index: 10;
+        }
+
+        @keyframes countdownAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-container {
+            perspective: 1000px;
+            width: 800px;
+            height: 450px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 5;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform 0.7s ease, box-shadow 0.7s ease, opacity 0.7s ease;
+            border-radius: 15px;
+            animation: cardPopUp 1s ease-out forwards;
+        }
+
+        @keyframes cardPopUp {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .card.pop-up {
+            transform: scale(1);
+            opacity: 1;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .card.flip {
+            transform: rotateY(180deg) scale(1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: cardFlip 1s ease-out forwards;
+        }
+
+        @keyframes cardFlip {
+            0% {
+                transform: rotateY(0);
+            }
+            100% {
+                transform: rotateY(180deg);
+            }
+        }
+
+        .card.flip-back {
+            transform: rotateY(180deg) scale(1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: cardFlipBack 1s ease-out forwards;
+        }
+
+        @keyframes cardFlipBack {
+            0% {
+                transform: rotateY(180deg);
+            }
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .card.move-out {
+            animation: moveOut 1s ease-out forwards;
+        }
+
+        @keyframes moveOut {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(150%);
+                opacity: 0;
+            }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-back {
+            background: #006400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .card-front {
+            background: #002d00;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: row;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .card-image {
+            width: 50%;
+            height: 100%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .card-image img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .card-details {
+            width: 50%;
+            padding: 15px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #1b5e20;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-details h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .card-details p {
+            font-size: 1.2rem;
+            margin: 8px 0;
+            color: white;
+        }
+
+        .timer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+            z-index: 15;
+        }
+    </style>
+</head>
+<body>
+    <div class="countdown" id="countdown">Auction starts in 5...</div>
+    <div class="timer" id="timer"></div>
+
+    <div class="card-container">
+        <div class="card" id="auctionCard">
+            <div class="card-face card-back">Player Card</div>
+            <div class="card-face card-front">
+                <div class="card-image">
+                    <img id="playerImage" src="" alt="Player Image">
+                </div>
+                <div class="card-details">
+                    <h2 id="playerName">Player Name</h2>
+                    <p><strong>Average:</strong> <span id="playerAverage">0</span></p>
+                    <p><strong>Strike Rate:</strong> <span id="playerStrikeRate">0</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const players = [
+            { name: "Babar Azam", average: 33.54, strikeRate: 129.35 },
+            { name: "Shaheen Afridi", average: 12.3, strikeRate: 95.0 }
+        ];
+
+        let currentIndex = 0;
+
+        function countdown() {
+            const countdownElement = document.getElementById("countdown");
+            let timeLeft = 5;
+
+            countdownElement.style.display = "block";
+            const interval = setInterval(() => {
+                countdownElement.textContent = `Auction starts in ${timeLeft}...`;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(interval);
+                    countdownElement.style.display = "none";
+                    showCard();
+                }
+            }, 1000);
+        }
+
+        function showCard() {
+            const cardContainer = document.querySelector(".card-container");
+            const card = document.getElementById("auctionCard");
+
+            cardContainer.style.display = "flex";
+            setTimeout(() => {
+                card.classList.add("pop-up");
+                setTimeout(() => {
+                    card.classList.add("flip");
+                    displayPlayer(currentIndex);
+                    startTimer();
+                }, 1000);
+            }, 500);
+        }
+
+        function displayPlayer(index) {
+            const player = players[index];
+            document.getElementById("playerName").textContent = player.name;
+            document.getElementById("playerAverage").textContent = player.average;
+            document.getElementById("playerStrikeRate").textContent = player.strikeRate;
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById("timer");
+            timerDisplay.style.display = "block";
+            let timeLeft = 5;
+
+            const timerInterval = setInterval(() => {
+                timerDisplay.textContent = timeLeft;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.style.display = "none";
+
+                    const card = document.getElementById("auctionCard");
+
+                    // Flip the card back (from front to back)
+                    card.classList.add("flip-back");
+                   
+                }
+            }, 1000);
+        }
+
+        countdown();
+    </script>
+</body>
+</html>
+
+
